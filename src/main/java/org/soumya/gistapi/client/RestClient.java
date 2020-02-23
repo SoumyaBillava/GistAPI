@@ -70,7 +70,6 @@ public class RestClient {
         String bodyString = jacksonObjectMapper.writeValueAsString(gist);
         lastResponse = createRequestSpecification()
                 .body(bodyString)
-                .when()
                 .post("/gists");
         lastStatusCode = lastResponse.statusCode();
         return lastResponse.body().jsonPath().getString("id");
