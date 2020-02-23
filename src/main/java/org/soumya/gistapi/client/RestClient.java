@@ -9,159 +9,116 @@ import org.soumya.gistapi.models.PostGistDTO;
 import org.soumya.gistapi.utils.PropertiesLoader;
 
 public class RestClient {
-    public static String baseUri = null;
-    public static String token = null;
-    int lastStatusCode;
-    Response lastResponse;
+    private static String baseUri = null;
+    private static String token = null;
+    private int lastStatusCode;
+    private Response lastResponse;
 
     public RestClient() {
         baseUri = PropertiesLoader.getBaseUrl();
         token = PropertiesLoader.getToken();
+        RestAssured.baseURI = baseUri;
+    }
+
+    public static String getBaseUri() {
+        return baseUri;
+    }
+
+    public static String getToken() {
+        return token;
     }
 
     public int getLastStatusCode() {
         return lastStatusCode;
     }
 
-    public void setLastStatusCode(int statusCode) {
-        lastStatusCode = statusCode;
-    }
-
     public Response getLastResponse() {
         return lastResponse;
-    }
-
-    public void setLastResponse(Response response) {
-        lastResponse = response;
     }
 
     /**
      * lists the gists of the given user
      *
-     * @param user
+     * @param user : the user for which gists have to be fetched
      */
     public void listUsersGists(String user) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(baseUri);
-        builder.append("users/");
-        builder.append(user);
-        builder.append("/gists");
+        lastResponse = createRequestSpecification()
+                .get("users/"+user+"/gists");
 
-        System.out.println("uri used : " + builder.toString());
-        get(builder.toString());
+        lastStatusCode = lastResponse.statusCode();
     }
 
     /**
      * lists all the gists
      */
     public void listGists() {
-        String uri = baseUri + "gists";
-        System.out.println("uri used : " + uri);
-        get(uri);
+        lastResponse = createRequestSpecification()
+                .get("/gists");
+
+        lastStatusCode = lastResponse.statusCode();
     }
 
-    /**
-     * Lists the given gist
-     *
-     * @param gistId
-     */
-    public void listSingleGist(String gistId) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(baseUri);
-        builder.append("gists/");
-        builder.append(gistId);
-
-        System.out.println("uri used : " + builder.toString());
-        get(builder.toString());
-    }
-
-    /**
-     * Does the REST get for the given uri and stores the status code and the
-     * response
-     *
-     * @param uri
-     */
-    public void get(String uri) {
-        RequestSpecification request = RestAssured.given();
-        Response response = request.get(uri);
-        int statusCode = response.getStatusCode();
-
-        setLastStatusCode(statusCode);
-        setLastResponse(response);
-    }
 
     /**
      * Creates a gist with given body
-     * @param body
-     * @return created gist id
-     * @throws JsonProcessingException
+     *
+     * @param gist : The gist body
+     * @throws JsonProcessingException : If body dto cannot be converted to json string
      */
-    public String createGist(PostGistDTO body) throws JsonProcessingException {
-        String uri = baseUri + "gists";
-        System.out.println("uri used : " + uri);
+    public String createGist(PostGistDTO gist) throws JsonProcessingException {
+        ObjectMapper jacksonObjectMapper = new ObjectMapper();
+        String bodyString = jacksonObjectMapper.writeValueAsString(gist);
+        lastResponse = createRequestSpecification()
+                .body(bodyString)
+                .when()
+                .post("/gists");
+        lastStatusCode = lastResponse.statusCode();
+        return lastResponse.body().jsonPath().getString("id");
+    }
 
-        RestAssured.baseURI = uri;
-        RequestSpecification request = RestAssured.given();
-        request.auth().oauth2(token);
-        ObjectMapper objectMapper = new ObjectMapper();
-        String postBody = objectMapper.writeValueAsString(body);
-        request.body(postBody);
+    /**
+     * Get gist by id
+     * @param gistId : the id of the gist
+     */
+    public void getGistById(String gistId){
+        lastResponse = createRequestSpecification()
+                .get("/gists/"+gistId);
 
-        request.contentType("application/json");
-        Response response = request.post();
-        int statusCode = response.getStatusCode();
-
-        setLastStatusCode(statusCode);
-        setLastResponse(response);
-
-        String id = response.body().jsonPath().getString("id");
-        System.out.println("Created gist id is : " + id);
-
-        return id;
+       lastStatusCode = lastResponse.statusCode();
     }
 
     /**
      * Updates the given gist with given body
      *
-     * @param id
-     * @param body
+     * @param gistDTO : the gist string body
+     * @param gistId : the gist id
      */
-    public void editGist(String id, PostGistDTO body) throws JsonProcessingException {
-        String uri = baseUri + "gists/" + id;
-        System.out.println("uri used : " + uri);
+    public void editGist(PostGistDTO gistDTO, String gistId) throws JsonProcessingException {
+        ObjectMapper jacksonObjectMapper = new ObjectMapper();
+        String bodyString = jacksonObjectMapper.writeValueAsString(gistDTO);
 
-        RestAssured.baseURI = uri;
-        RequestSpecification request = RestAssured.given();
-        request.auth().oauth2(token);
-        ObjectMapper objectMapper = new ObjectMapper();
-        String postBody = objectMapper.writeValueAsString(body);
-        request.body(postBody);
+        lastResponse = createRequestSpecification()
+                .body(bodyString)
+                .patch("/gists/"+gistId);
 
-        request.contentType("application/json");
-        Response response = request.patch();
-        int statusCode = response.getStatusCode();
-
-        setLastStatusCode(statusCode);
-        setLastResponse(response);
+        lastStatusCode = lastResponse.statusCode();
     }
 
     /**
      * Deletes the given gist
      *
-     * @param id
+     * @param gistId : the id of the gist
      */
-    public void deleteGist(String id) {
-        String uri = baseUri + "gists/" + id;
-        System.out.println("uri used : " + uri);
+    public void deleteGist(String gistId){
+        lastResponse = createRequestSpecification()
+                .delete("/gists/"+gistId);
+        lastStatusCode = lastResponse.getStatusCode();
+    }
 
-        RestAssured.baseURI = uri;
-        RequestSpecification request = RestAssured.given();
-        request.auth().oauth2(token);
-        request.contentType("application/json");
-        Response response = request.delete();
-        int statusCode = response.getStatusCode();
-
-        setLastStatusCode(statusCode);
-        setLastResponse(response);
+    private RequestSpecification createRequestSpecification() {
+        String contentType = "application/json";
+        return RestAssured.given()
+                .header("Authorization", "Bearer " + token)
+                .contentType(contentType);
     }
 }

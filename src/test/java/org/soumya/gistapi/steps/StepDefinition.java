@@ -26,8 +26,8 @@ public class StepDefinition {
     @When("the system is ready")
     public void checkSystem() {
         assertNotNull(crud);
-        assertNotNull(RestClient.baseUri);
-        assertNotNull(RestClient.token);
+        assertNotNull(RestClient.getBaseUri());
+        assertNotNull(RestClient.getToken());
     }
 
     @When("^User searches for the gists$")
@@ -43,7 +43,7 @@ public class StepDefinition {
 
     @When("^User searches for the gist with id$")
     public void singleGist() {
-        crud.listSingleGist(gistId);
+        crud.getGistById(gistId);
     }
 
     @When("^User selects the gist with id (.*)$")
@@ -84,7 +84,7 @@ public class StepDefinition {
 
     @When("^User updates the gist$")
     public void updateGist() throws JsonProcessingException {
-        crud.editGist(gistId, toBeCreatedGist);
+        crud.editGist(toBeCreatedGist, gistId);
     }
 
     @When("^User deletes the gist$")

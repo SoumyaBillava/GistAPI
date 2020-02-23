@@ -26,6 +26,14 @@ public class PropertiesLoader {
         } catch (IOException e) {
             System.err.println("Exception while loading property file -config.properties - " + e.getMessage());
         }
+        finally {
+            try {
+                reader.close();
+            }
+            catch (Exception ex) {
+                System.err.println("Exception while closing file reader - " + ex.getMessage());
+            }
+        }
         return properties;
     }
 
