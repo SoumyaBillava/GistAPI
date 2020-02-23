@@ -92,33 +92,10 @@ public class RestClient {
 
     /**
      * Creates a gist with given body
-     *
      * @param body
-     * @return id of the created gist
-     * @
+     * @return created gist id
+     * @throws JsonProcessingException
      */
-    public String createGist(String body) {
-        String uri = baseUri + "gists";
-        System.out.println("uri used : " + uri);
-
-        RestAssured.baseURI = uri;
-        RequestSpecification request = RestAssured.given();
-        request.auth().oauth2(token);
-        request.body(body);
-
-        request.contentType("application/json");
-        Response response = request.post();
-        int statusCode = response.getStatusCode();
-
-        setLastStatusCode(statusCode);
-        setLastResponse(response);
-
-        String id = response.body().jsonPath().getString("id");
-        System.out.println("Created gist id is : " + id);
-
-        return id;
-    }
-
     public String createGist(PostGistDTO body) throws JsonProcessingException {
         String uri = baseUri + "gists";
         System.out.println("uri used : " + uri);

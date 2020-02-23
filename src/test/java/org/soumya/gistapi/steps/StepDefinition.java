@@ -17,7 +17,6 @@ import org.soumya.gistapi.flatmodels.GistFileDTO;
 import org.soumya.gistapi.models.PostGistDTO;
 
 public class StepDefinition {
-
     private PostGistDTO toBeCreatedGist = new PostGistDTO();
     static RestClient crud = new RestClient();
     String gistId;
@@ -63,13 +62,17 @@ public class StepDefinition {
         }
     }
 
-    @When("^User provides gist description (.*) and isPublic (.*)$")
-    public void createGist(String description, Boolean isPublic) {
+    @When("^gist description is provided as (.*)$")
+    public void createGist(String description) {
         this.toBeCreatedGist.setDescription(description);
+    }
+
+    @When("^gist public access is (.*)$")
+    public void createGist(Boolean isPublic) {
         this.toBeCreatedGist.setPublic(isPublic);
     }
 
-    @When("^User provides gist files:$")
+    @When("^gist files provided as:$")
     public void createGist(List<GistFileDTO> files) {
         HashMap<String, FileDTO> toBeCreatedFiles = new HashMap<>();
         files.forEach(file -> {
@@ -77,17 +80,6 @@ public class StepDefinition {
             toBeCreatedFiles.put(file.getFileName(), fileDTO);
         });
         toBeCreatedGist.setFiles(toBeCreatedFiles);
-    }
-
-    @When("^User creates a gist with input (.*)$")
-    public void createGist(String input) {
-        gistId = crud.createGist(input);
-
-        // if gist creation is successful, mark gistCreated to true so that the gist is
-        // deleted at the end of the test
-        if (crud.getLastStatusCode() == 201) {
-            gistCreated = true;
-        }
     }
 
     @When("^User updates the gist$")
