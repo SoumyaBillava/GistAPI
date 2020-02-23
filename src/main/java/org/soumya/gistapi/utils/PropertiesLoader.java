@@ -28,7 +28,8 @@ public class PropertiesLoader {
         }
         finally {
             try {
-                reader.close();
+                if(reader!=null)
+                    reader.close();
             }
             catch (Exception ex) {
                 System.err.println("Exception while closing file reader - " + ex.getMessage());
