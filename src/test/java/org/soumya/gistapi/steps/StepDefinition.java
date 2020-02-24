@@ -18,9 +18,9 @@ import org.soumya.gistapi.models.PostGistDTO;
 
 public class StepDefinition {
     private PostGistDTO toBeCreatedGist = new PostGistDTO();
-    static RestClient crud = new RestClient();
-    String gistId;
-    boolean gistCreated = false;
+    private static RestClient crud = new RestClient();
+    private String gistId;
+    private boolean gistCreated = false;
 
     // check if the system is ready to execute the tests
     @When("the system is ready")
